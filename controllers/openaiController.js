@@ -1,18 +1,24 @@
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAIApi = require("openai");
 
-const configuration = new Configuration({
-  apiKey: process.env.OpenAIApi,
+const openai = new OpenAIApi({
+  apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 const generateImage = async (req, res) => {
+  const {prompt, size } = req.body;
+  
+  const imageSize = size === 'Square' ? '1024x1024' : size === "Portrait" ? '1024x1792' :'1792x1024';
+
+
   try {
-    const response = await openai.createImage({
-      prompt: "Person eating a car",
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: prompt,
       n: 1,
-      size: "512x512",
+      size: imageSize,
     });
-    const imageUrl = response.data.data[0].url;
+
+    imageUrl = response.data[0].url;
 
     res.status(200).json({
       success: true,
@@ -20,10 +26,10 @@ const generateImage = async (req, res) => {
     });
   } catch (error) {
     if (error.response) {
-        console.log(error.response.status);
-        console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.data);
     } else {
-        console.log(error.message);
+      console.log(error.message);
     }
     res.status(400).json({
       success: false,
